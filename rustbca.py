@@ -54,9 +54,7 @@ def do_trajectory_plot(name, thickness=None, depth=None, boundary=None, plot_fin
     '''
     Plots trajectories of ions and recoils from [name]trajectories.output.
     Optionally marks final positions/origins and draws material geometry.
-
     Geometry input is in same length_unit as the rustbca particles.
-
     Args:
         name (string): name of rustbca simulation
         thickness list(float): thickness of target, or None to not draw target
@@ -65,7 +63,6 @@ def do_trajectory_plot(name, thickness=None, depth=None, boundary=None, plot_fin
         plot_final_positions (bool): mark final positions (reflected: X sputtered: * deposited ^)
         plot_origins (bool): mark originating locations of particles (o)
         show (bool): whether or not to show plots
-
     '''
 
     reflected = np.atleast_2d(np.genfromtxt(name+'reflected.output', delimiter=','))
@@ -140,9 +137,7 @@ def do_trajectory_plot_3d(name, thickness=None, depth=None, boundary=None, plot_
     '''
     Plots trajectories of ions and recoils from [name]trajectories.output.
     Optionally marks final positions/origins and draws material geometry.
-
     Geometry input is in same length_unit as the rustbca particles.
-
     Args:
         name (string): name of rustbca simulation
         thickness list(float): thickness of target, or None to not draw target
@@ -151,7 +146,6 @@ def do_trajectory_plot_3d(name, thickness=None, depth=None, boundary=None, plot_
         plot_final_positions (bool): mark final positions (reflected: X sputtered: * deposited ^)
         plot_origins (bool): mark originating locations of particles (o)
         show (bool): whether or not to show plots
-
     '''
 
     from mayavi.mlab import points3d, plot3d, mesh, triangular_mesh
@@ -379,7 +373,6 @@ def plot_distributions_rustbca(name, beam, target,
 
     '''
     Plots rustbca distributions.
-
     Args:
         name (string): name of rustbca simulation.
         beam (dict): ions striking target; dictionary with fields symbol and Z
@@ -391,7 +384,6 @@ def plot_distributions_rustbca(name, beam, target,
         collision_contour_significance_threshold (int): threshold of significance for contour plotting; default 0.1
         ../target/release/RustBCA (bool): separte reflected energy spectrum into collision number distributions; default False
         plot_scattering_energy_curve (bool): plot bold, translucent white curve showing theoretical single-collision reflected energies; default False
-
     '''
     num_bins = 120
 
@@ -674,7 +666,6 @@ def plot_distributions_rustbca(name, beam, target,
 def plot_displacements(name, displacement_energy, num_bins=100):
     '''
     Plots displacements given a threshold displacement energy.
-
     Args:
         name (string): name of rustbca simulation.
         displacement_energy (float): threshold energy needed to produce a permanent frenkel pair in energy_units
@@ -707,7 +698,6 @@ def plot_displacements(name, displacement_energy, num_bins=100):
 def plot_energy_loss(name, N, num_bins=50, thickness=None, depth=None):
     '''
     Plots energy loss plots separated by electronic and nuclear losses from rustbca.
-
     Args:
         name (string): name of rustbca simulation
         N (int): number of incident ions
@@ -773,7 +763,6 @@ def plot_energy_loss(name, N, num_bins=50, thickness=None, depth=None):
 def plot_all_depth_distributions(name, displacement_energy, N, num_bins=100):
     '''
     Plots all available depth distributions (energy losses, displacements, implantation profiles) on one plot.
-
     Args:
         name (string): name of rustbca simulation
         displacement_energy (float): threshold energy needed to produce a permanent frenkel pair in energy_units
@@ -816,7 +805,6 @@ def plot_all_depth_distributions(name, displacement_energy, N, num_bins=100):
 def run_iead(ions, target, energies, angles, iead, name="default_", N=1):
     '''
     Given an IEAD in the from of a 2D array of counts, run rustbca for the ions that make up the IEAD.
-
     Args:
         ions (dict): ion dictionary (see top of file)
         target (dict): target dictionary (see top of file)
@@ -1204,7 +1192,6 @@ def different_depths():
 def plot_3d_distributions(ions, target, name):
     '''
     Uses Mayavi to plot interactive 3D distributions.
-
     Args:
         name (string): name of rustbca simulation
         ions (dict): ion dictionary; see top of file
@@ -1540,7 +1527,6 @@ def generate_rustbca_input_sphere(Zb, Mb, n, Eca, Ecb, Esa, Esb, Eb, Ma, Za, E0,
 def test():
     '''
     Here an example usage of beam_target is shown. This code runs rustbca and produces plots.
-
     For helium on copper at 1 keV and 0 degrees angle of incidence,
     all the distributions and trajectories are plotted.
     '''
@@ -1654,24 +1640,60 @@ def main():
     # plt.legend(legends)
     # plt.show()
 
-    f = open('sputtering_yield', 'w', encoding="utf-8")
-    print(f"\n")
-    print(f"# SPUTTERING YIELD")
-    print(f"# ")
-    print(f"# First column : energy [eV]")
-    print(f"# First row    : angles [deg]")
-    print(f"# Table        : sputtering yield [atoms/ion]")
-    print(f"")
-    print(f"            ", end = '')
-    for i in range(num_angles):
-        print(f"{(angles[i]):.3e}, ", end = '')
-    print(f"")
-    for ie in range(num_energies):
-        print(f"{(energies[ie]):.3e}, ", end = '')
-        for ia in range(num_angles):
-            print(f"{(sputtering_yield[ie][ia]):.3e}, ", end = '')
-        print(f"")
-    f.close()
-
+        f = open('sputtering.csv', 'w', encoding="utf-8")
+        print(f"# SPUTTERING YIELD",file=f)
+        print(f"# ",file=f)
+        print(f"# Ion          : {ion['name']}   ",file=f)
+        print(f"# Target       : {target['name']}",file=f)
+        print(f"# Software     : RustBCA v.1.2.0 ",file=f)
+        print(f"# Repository   : https://github.com/lcpp-org/RustBCA",file=f)
+        print(f"# Legend",file=f)
+        print(f"# First column : energy [eV]",file=f)
+        print(f"# First row    : angles [deg]",file=f)
+        print(f"# Table        : sputtering yield [atoms/ion]",file=f)
+        print(f"",file=f)
+        print(f"           ", end = '',file=f)
+        for i in range(num_angles):
+            print(f"{(angles[i]):.3e}", end = '',file=f)
+            if (i<(num_angles-1)):
+                print(", ", end = '',file=f)
+        print(f"",file=f)
+        for ie in range(num_energies):
+            print(f"{(energies[ie]):.3e}, ", end = '',file=f)
+            for ia in range(num_angles):
+                print(f"{(sputtering_yield[ie][ia]):.3e}", end = '',file=f)
+                if (ia<(num_angles-1)):
+                    print(", ", end = '',file=f)
+            print(f"",file=f)
+        f.close()
+        
+        f = open('reflection.csv', 'w', encoding="utf-8")
+        print(f"\n")
+        print(f"# REFLECTION COEFFICIENT",file=f)
+        print(f"# ",file=f)
+        print(f"# Ion          : {ion['name']}   ",file=f)
+        print(f"# Target       : {target['name']}",file=f)
+        print(f"# Software     : RustBCA v.1.2.0 ",file=f)
+        print(f"# Repository   : https://github.com/lcpp-org/RustBCA",file=f)
+        print(f"# Legend",file=f)
+        print(f"# First column : energy [eV]",file=f)
+        print(f"# First row    : angles [deg]",file=f)
+        print(f"# Table        : reflection coefficient [atoms/ion]",file=f)
+        print(f"",file=f)
+        print(f"           ", end = '',file=f)
+        for i in range(num_angles):
+            print(f"{(angles[i]):.3e}", end = '',file=f)
+            if (i<(num_angles-1)):
+                print(", ", end = '',file=f)
+        print(f"",file=f)
+        for ie in range(num_energies):
+            print(f"{(energies[ie]):.3e}, ", end = '',file=f)
+            for ia in range(num_angles):
+                print(f"{(reflection_coefficient[ie][ia]):.3e}", end = '',file=f)
+                if (ia<(num_angles-1)):
+                    print(", ", end = '',file=f)
+            print(f"",file=f)
+        f.close()
+    
 if __name__ == '__main__':
     main()
