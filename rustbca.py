@@ -1606,8 +1606,8 @@ def test():
 def main():
     ions = [carbon]   # list of ions, e.g.: ions=[hydrogen, deuterium, lithium]
     target = tungsten
-    energies = np.logspace(1, 3, 100)
-    angles = np.array([0.00001, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 65.0, 70.0, 72.0, 74.0, 76.0, 78.0, 80.0, 82.0, 84.0, 86.0])
+    energies = np.logspace(np.log10(20), 3, 100)
+    angles = np.array([0.00001, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 65.0, 70.0, 72.0, 74.0, 76.0, 78.0, 80.0, 82.0, 84.0, 86.0, 88.0])
     number_ions = 10000
     num_energies = energies.size
     num_angles   = angles.size
