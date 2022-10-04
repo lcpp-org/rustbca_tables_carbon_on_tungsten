@@ -288,7 +288,7 @@ def generate_rustbca_input(Zb, Mb, n, Eca, Ecb, Esa, Esb, Eb, Ma, Za, E0, N, N_,
         'weak_collision_order': weak_collision_order,
         'suppress_deep_recoils': False,
         'high_energy_free_flight_paths': high_energy,
-        'num_threads': 4,
+        'num_threads': 8,
         'num_chunks': 10,
         'use_hdf5': False,
         'electronic_stopping_mode': electronic_stopping_mode,
@@ -1604,18 +1604,69 @@ def test():
     plt.show()
 
 def main():
-    ions = [carbon]   # [hydrogen, deuterium, lithium]
+    ions = [carbon]   # list of ions, e.g.: ions=[hydrogen, deuterium, lithium]
     target = tungsten
     energies = np.logspace(0, 3, 5)
     angles = np.array([0.00001, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 85.0])
-    number_ions = 100
+    number_ions = 1000
     num_energies = energies.size
     num_angles   = angles.size
     legends = []
     for ion in ions:
+        ###
+        # Write header in sputtering .csv file
+        filename_sy = 'sputtering_'+ion['name']+'_'+target['name']+'.csv'
+        f = open(filename_sy,'a',encoding="utf-8")
+        print(f"# SPUTTERING YIELD",file=f)
+        print(f"# ",file=f)
+        print(f"# Ion          : {ion['name']}   ",file=f)
+        print(f"# Target       : {target['name']}",file=f)
+        print(f"# Software     : RustBCA v.1.2.0 ",file=f)
+        print(f"# Repository   : https://github.com/lcpp-org/RustBCA",file=f)
+        print(f"# Legend",file=f)
+        print(f"# First column : energy [eV]",file=f)
+        print(f"# First row    : angles [deg]",file=f)
+        print(f"# Table        : sputtering yield [atoms/ion]",file=f)
+        print(f"",file=f)
+        print(f"0.0000e+00, ",end = '',file=f)
+        for i in range(num_angles):
+            print(f"{(angles[i]):.4e}",end = '',file=f)
+            if (i<(num_angles-1)):
+                print(", ", end = '',file=f)
+        print(f"",file=f)
+        f.close()
+        ###
+        # Write header of reflection .csv file
+        filename_rc = 'reflection_'+ion['name']+'_'+target['name']+'.csv'
+        f = open(filename_rc,'a',encoding="utf-8")
+        print(f"# REFLECTION COEFFICIENT",file=f)
+        print(f"# ",file=f)
+        print(f"# Ion          : {ion['name']}   ",file=f)
+        print(f"# Target       : {target['name']}",file=f)
+        print(f"# Software     : RustBCA v.1.2.0 ",file=f)
+        print(f"# Repository   : https://github.com/lcpp-org/RustBCA",file=f)
+        print(f"# Legend",file=f)
+        print(f"# First column : energy [eV]",file=f)
+        print(f"# First row    : angles [deg]",file=f)
+        print(f"# Table        : reflection probability",file=f)
+        print(f"",file=f)
+        print(f"0.0000e+00, ",end = '',file=f)
+        for i in range(num_angles):
+            print(f"{(angles[i]):.4e}", end = '',file=f)
+            if (i<(num_angles-1)):
+                print(", ", end = '',file=f)
+        print(f"",file=f)
+        f.close()
+        # Cycle over list of energies and angles and run
         sputtering_yield       = np.zeros((num_energies, num_angles))
         reflection_coefficient = np.zeros((num_energies, num_angles))
         for ie in range(num_energies):
+            f = open(filename_sy,'a',encoding="utf-8")
+            print(f"{(energies[ie]):.4e}, ",end = '',file=f)
+            f.close()
+            f = open(filename_rc,'a',encoding="utf-8")
+            print(f"{(energies[ie]):.4e}, ",end = '',file=f)
+            f.close()
             for ia in range(num_angles):
                 # Run RustBCA and get sputtering yield and reflection coefficient
                 s, r, _ = beam_target(ion, target, energies[ie], angles[ia], N_=number_ions)
@@ -1631,69 +1682,22 @@ def main():
                 else:
                     RC = 0.0
                 reflection_coefficient[ie][ia] = RC
-
-            # legends.append(f"{ion['symbol']} on W Y")
-            # plt.loglog(energies, sputtering_yield)
-            # legends.append(f"{ion['symbol']} on W R")
-            # plt.loglog(energies, reflection_coefficient, linestyle='--')
-
-    # plt.legend(legends)
-    # plt.show()
-
-        f = open('sputtering.csv', 'w', encoding="utf-8")
-        print(f"# SPUTTERING YIELD",file=f)
-        print(f"# ",file=f)
-        print(f"# Ion          : {ion['name']}   ",file=f)
-        print(f"# Target       : {target['name']}",file=f)
-        print(f"# Software     : RustBCA v.1.2.0 ",file=f)
-        print(f"# Repository   : https://github.com/lcpp-org/RustBCA",file=f)
-        print(f"# Legend",file=f)
-        print(f"# First column : energy [eV]",file=f)
-        print(f"# First row    : angles [deg]",file=f)
-        print(f"# Table        : sputtering yield [atoms/ion]",file=f)
-        print(f"",file=f)
-        print(f"           ", end = '',file=f)
-        for i in range(num_angles):
-            print(f"{(angles[i]):.3e}", end = '',file=f)
-            if (i<(num_angles-1)):
-                print(", ", end = '',file=f)
-        print(f"",file=f)
-        for ie in range(num_energies):
-            print(f"{(energies[ie]):.3e}, ", end = '',file=f)
-            for ia in range(num_angles):
-                print(f"{(sputtering_yield[ie][ia]):.3e}", end = '',file=f)
+                # Save sputtering yield on output file
+                f = open(filename_sy,'a',encoding="utf-8")
+                print(f"{(sputtering_yield[ie][ia]):.4e}", end = '',file=f)
                 if (ia<(num_angles-1)):
                     print(", ", end = '',file=f)
-            print(f"",file=f)
-        f.close()
-        
-        f = open('reflection.csv', 'w', encoding="utf-8")
-        print(f"\n")
-        print(f"# REFLECTION COEFFICIENT",file=f)
-        print(f"# ",file=f)
-        print(f"# Ion          : {ion['name']}   ",file=f)
-        print(f"# Target       : {target['name']}",file=f)
-        print(f"# Software     : RustBCA v.1.2.0 ",file=f)
-        print(f"# Repository   : https://github.com/lcpp-org/RustBCA",file=f)
-        print(f"# Legend",file=f)
-        print(f"# First column : energy [eV]",file=f)
-        print(f"# First row    : angles [deg]",file=f)
-        print(f"# Table        : reflection coefficient [atoms/ion]",file=f)
-        print(f"",file=f)
-        print(f"           ", end = '',file=f)
-        for i in range(num_angles):
-            print(f"{(angles[i]):.3e}", end = '',file=f)
-            if (i<(num_angles-1)):
-                print(", ", end = '',file=f)
-        print(f"",file=f)
-        for ie in range(num_energies):
-            print(f"{(energies[ie]):.3e}, ", end = '',file=f)
-            for ia in range(num_angles):
-                print(f"{(reflection_coefficient[ie][ia]):.3e}", end = '',file=f)
+                else:
+                    print(f"",file=f)
+                f.close()
+                # Save reflection probability on output file
+                f = open(filename_rc,'a',encoding="utf-8")
+                print(f"{(reflection_coefficient[ie][ia]):.4e}", end = '',file=f)
                 if (ia<(num_angles-1)):
                     print(", ", end = '',file=f)
-            print(f"",file=f)
-        f.close()
+                else:
+                    print(f"",file=f)
+                f.close()
     
 if __name__ == '__main__':
     main()
